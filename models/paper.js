@@ -5,8 +5,7 @@ import { Profile, User } from "./user.js";
 const reviewSchema = new mongoose.Schema({
   Author: { type: Schema.Types.ObjectId, required: true, ref: "User" },
   Paper: { type: Schema.Types.ObjectId, required: true, ref: "Paper" },
-  Comment: { type: String, default: "" },
-  Approved: { type: Boolean, required: true },
+  Comment: { type: String, default: "" }, Approved: { type: Boolean, required: true },
   ReviewDate: { type: Date, default: new Date() }
 });
 

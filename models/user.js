@@ -8,14 +8,15 @@ const userSchema = mongoose.Schema({
   LastActivity: { type: Date, default: new Date() },
 })
 
+
 const profileSchema = mongoose.Schema({
-  Profile: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+  User: { type: Schema.Types.ObjectId, required: true, ref: "User" },
   Description: { type: String, default: "" },
   Papers: [{ type: Schema.Types.ObjectId, ref: "Paper" }], // Lista di paper pubblicati 
-
-  PaperToReview: [{ type: Schema.Types.ObjectId, ref: "Paper" }], // Lista di paper alle quali è stata assegnata una review 
+  PaperReviews: [{ type: Schema.Types.ObjectId, ref: "Paper" }], // Lista di paper alle quali è stata assegnata una review 
   Reviewer: { type: Boolean, default: false }
 })
+
 
 const user = mongoose.model("User", userSchema)
 const profile = mongoose.model("Profile", profileSchema)

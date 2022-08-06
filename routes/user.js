@@ -1,4 +1,4 @@
-const {User,Profile} = require("../models/paper.js")
+const { User, Profile } = require("../models/paper.js")
 const express = require("express")
 
 const userRoutes = express.Router()
