@@ -135,17 +135,15 @@ paperRoutes.get('/reviews/paper', getPaper, async (req, res) => {
 
 //------------------------------------------------------------------------------------
 async function getPaper(req, res, next) {
-  let paper
   try {
-    paper = await Paper.findById(req.params._id)
-    if (Paper == null) {
+    res.paper = await Paper.findById(req.params._id)
+    if (res.paper == null) {
       return res.status(404).json({ message: 'Cannot find project ' })
     }
   } catch (err) {
     return res.status(400).json({ message: err.message })
   }
-
-  res.paper = paper
   next()
 }
+
 module.exports = paperRoutes 
