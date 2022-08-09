@@ -34,15 +34,15 @@ paperRoutes.post("/new", async (req, res) => {
   }
 })
 
+// OK non ha molto senso, da rifare 
 // get paper by  paper_id 
-paperRoutes.get('/:_id', getPaper, async (req, res) => {
-  const user = await User.findOne({
-    Email: req.auth[process.env.SERVICE_SITE]
-  })
-  if (user._id.toString() !== res.paper.Author.toString()) { return res.status(403).json({ message: 'Forbidden' }) }
-
-  return res.status(200).json(res.paper)
-})
+// paperRoutes.get('/:_id', getPaper, async (req, res) => {
+//   const user = await User.findOne({
+//     Email: req.auth[process.env.SERVICE_SITE]
+//   })
+//   if (user._id.toString() !== res.paper.Author.toString()) { return res.status(403).json({ message: 'Forbidden' }) }
+//   return res.status(200).json(res.paper)
+// })
 
 // get all paper of a user  
 paperRoutes.get('/allPapers', async (req, res) => {
@@ -53,6 +53,16 @@ paperRoutes.get('/allPapers', async (req, res) => {
     let profile = await Profile.findOne({ User: User._id })
     let papers = profile.papers
     return res.status(200).json(papers)
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+})
+
+// Get feed of the last 10 reviewable papers 
+paperRoutes.get("/feed", async (req, res) => {
+  try {
+    let reviewable = Paper.find({ Approved: false }).sort({ _id: 1 }).limit(10)
+    return res.status(200).json(reviewable)
   } catch (err) {
     return res.status(400).json({ message: err.message })
   }
@@ -83,28 +93,44 @@ paperRoutes.get('/search/', async (req, res) => {
   }
 })
 
-// post review of a paper ( user_id and paper_id needed ) -->!this is a patch of a an already created review notice (there is a fan-out in the paper creation) 
+// post review of a paper ( user_id and paper_id needed ) 
 paperRoutes.post('/reviews/new', async (req, res) => {
   const user = await User.findOne({
     Email: req.auth[process.env.SERVICE_SITE]
   })
   try {
+    // controlla che l'utente sia un reviewer 
+    let profile = await Profile.findOne({ User: user._id })
+    if (profile.Reviewer == false) return res.status(400).json({ message: "l'utente non è un reviewer" })
+
+    // controlla che la review non sia stata approvata nel frattempo 
+    let paper = await Paper.findOne({ paper: req.body.paper }).populate("Reviews")
+    if (paper.Approved == true) return res.status(400).json({ message: "The paper has already been approved " })
+
     // crea review e la salva  
     let review = new Review({
       Author: user._id,
       Paper: req.body.paper,
+      Approved: req.body.approved,
       Comment: req.body.comment,
     })
     await review.save()
 
-    // inserisci la review dentro lo schema del profilo e dell paper
-    let profile = await Profile.findOne({ User: user._id })
+    // inserisci la review dentro lo schema del profilo 
     profile.PaperReviews.push(review)
     await profile.save()
-    let paper = await Paper.findOne({ paper: req.body.paper })
-    paper.Reviews.push(review)
-    await paper.save()
 
+    // inserisci la review dentro lo schema del paper e controlla se paper è da approvare 
+    paper.Reviews.push(review)
+    let plenght = paper.Reviews.lenght
+    if (plenght >= 3) {
+      let vote;
+      for (let i = 0; i < plenght; i++) {
+        if (paper.reviews[i].Approved == true) vote++
+      }
+      if (vote > (plenght / 2)) paper.Approved = true
+    }
+    await paper.save()
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

@@ -1,13 +1,44 @@
 require("dotenv").config()
 const { User, Profile } = require("../models/paper.js")
 const escapeStringRegexp = import("escape-string-regexp")
+const { ManagementClient } = import("auth0")
 const express = require("express")
 
 const userRoutes = express.Router()
 
-
-
-// FirstConfig di 1 user 
+// FirstConfig di uno user 
+userRoutes.post('/firstConfig', async (req, res, next) => {
+  try {
+    let user = await User.findOneAndUpdate({
+      Email: req.auth[process.env.SERVICE_SITE]
+    }, {
+      $set: { Username: req.body.username }
+    })
+    if (!user) {
+      user = await User.create({
+        Email: req.auth[process.env.SERVICE_SITE],
+        Username: req.body.username
+      })
+      await user.save()
+    }
+    let profile = await Profile.findOneAndUpdate(
+      { user: user._id },
+      { $set: { Description: req.body.description } },
+      { Reviewer: true }
+    )
+    if (!profile) {
+      profile = await Profile.create({
+        User: user._id,
+        Description: req.body.Description,
+        Papers: [],
+        PaperReviews: [],
+        Reviewer: true
+      })
+    }
+  } catch (err) {
+    next(err)
+  }
+})
 
 // Ottieni il tuo profilo 
 userRoutes.get('/me', getUser, async (req, res) => {
@@ -44,7 +75,6 @@ userRoutes.get('/search', async (req, res) => {
   }
 })
 
-
 // Client auth0 
 const management = new ManagementClient({
   grant_type: 'client_credentials',
@@ -52,6 +82,7 @@ const management = new ManagementClient({
   clientSecret: process.env.AUTH0_CLIENT_SECRET,
   domain: process.env.AUTH0_DOMAIN
 })
+
 // Middleware
 const getUser = async (req, res, next) => {
   try {
