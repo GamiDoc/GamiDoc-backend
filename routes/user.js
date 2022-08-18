@@ -1,11 +1,18 @@
 require("dotenv").config()
 const { User, Profile } = require("../models/paper.js")
-const escapeStringRegexp = import("escape-string-regexp")
-const { ManagementClient } = import("auth0")
+const escapeStringRegexp = require("escape-string-regexp")
+const { ManagementClient } = require("auth0")
 const express = require("express")
 
 const userRoutes = express.Router()
 
+userRoutes.get('/checkProfile', (req, res) => {
+  management.getUser({ id: req.auth.sub }, (err, user) => {
+    if (err) return res.status(500).json({ error: "broken connection with auth0" })
+    if (user.user_metadata?.first_config) return res.status(200).json({ status: true });
+    return res.status(200).json({ status: false })
+  })
+})
 // FirstConfig di uno user 
 userRoutes.post('/firstConfig', async (req, res, next) => {
   try {
@@ -35,6 +42,12 @@ userRoutes.post('/firstConfig', async (req, res, next) => {
         Reviewer: true
       })
     }
+    management.updateUserMetadata({ id: req.auth.sub }, { first_config: true }, (err, user) => {
+      console.log(err)
+      if (err) return res.status(500).json({ error: "auth0 connection failed!" })
+      console.log(user)
+      return res.status(200).json({ status: 'ok' })
+    })
   } catch (err) {
     next(err)
   }
