@@ -1,12 +1,30 @@
-require("dotenv").config();
-const { Paper, Review } = require("../models/paper.js")
-const { Profile, User } = require("../models/user.js")
-const escapeStringRegexp = import('escape-string-regexp')
+require("dotenv").config()
+const { Paper, Review } = require("../models/paper")
+const { Profile, User } = require("../models/user")
+const escapeStringRegexp = require('escape-string-regexp')
 const express = require("express")
+
+// import { } from "dotenv/config"
+// import { Paper, Review } from "../models/paper.js"
+// import { Profile, User } from "../models/user.js"
+// import escapeStringRegexp from 'escape-string-regexp'
+// import express from "express"
 
 const paperRoutes = express.Router()
 
-// create a paper ( user_id needed ) with eventual fan-out 
+// Middleware
+async function getPaper(req, res, next) {
+  try {
+    res.paper = await Paper.findById(req.params._id)
+    if (res.paper == null) {
+      return res.status(404).json({ message: 'Cannot find project ' })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+  next()
+}
+// create a paper ( user_id needed ) 
 paperRoutes.post("/new", async (req, res) => {
   const user = await user.findOne({
     email: req.auth[process.env.SERVICE_SITE]
@@ -37,8 +55,7 @@ paperRoutes.post("/new", async (req, res) => {
 // OK non ha molto senso, da rifare 
 // get paper by  paper_id 
 // paperRoutes.get('/:_id', getPaper, async (req, res) => {
-//   const user = await User.findOne({
-//     Email: req.auth[process.env.SERVICE_SITE]
+//   const user = await User.findOne({ Email: req.auth[process.env.SERVICE_SITE]
 //   })
 //   if (user._id.toString() !== res.paper.Author.toString()) { return res.status(403).json({ message: 'Forbidden' }) }
 //   return res.status(200).json(res.paper)
@@ -159,17 +176,6 @@ paperRoutes.get('/reviews/paper', getPaper, async (req, res) => {
   return res.status(200).json(res.paper.Reviews)
 })
 
-//------------------------------------------------------------------------------------
-async function getPaper(req, res, next) {
-  try {
-    res.paper = await Paper.findById(req.params._id)
-    if (res.paper == null) {
-      return res.status(404).json({ message: 'Cannot find project ' })
-    }
-  } catch (err) {
-    return res.status(400).json({ message: err.message })
-  }
-  next()
-}
+
 
 module.exports = paperRoutes 

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
     "prettier": "prettier --write",
@@ -14,7 +13,7 @@
   "dependencies": {
     "auth0": "^2.42.0",
     "cors": "^2.8.5",
-    "escape-string-regexp": "^5.0.0",
+    "escape-string-regexp": "^4.0.0",
     "express": "^4.18.1",
     "express-jwt": "^7.7.5",
     "express-openid-connect": "^2.7.3",

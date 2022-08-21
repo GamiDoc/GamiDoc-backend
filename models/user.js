@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
-// const { Paper, Review } = require("./paper.js")
-import { Paper, Review } from "./paper.js";
+const { Paper, Review } = require("./paper")
+// import { Paper, Review } from "./paper.js"
+// import mongoose from "mongoose"
 
 const userSchema = mongoose.Schema({
   Email: { type: String, required: true, },
@@ -10,13 +11,12 @@ const userSchema = mongoose.Schema({
 
 
 const profileSchema = mongoose.Schema({
-  User: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+  User: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
   Description: { type: String, default: "" },
-  Papers: [{ type: Schema.Types.ObjectId, ref: "Paper" }], // Lista di paper pubblicati 
-  PaperReviews: [{ type: Schema.Types.ObjectId, ref: "Paper" }], // Lista di paper alle quali è stata assegnata una review 
+  Papers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Paper" }], // Lista di paper pubblicati 
+  PaperReviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Paper" }], // Lista di paper alle quali è stata assegnata una review 
   Reviewer: { type: Boolean, default: false }
 })
-
 
 const user = mongoose.model("User", userSchema)
 const profile = mongoose.model("Profile", profileSchema)
@@ -25,4 +25,3 @@ module.exports = {
   User: user,
   Profile: profile
 }
-

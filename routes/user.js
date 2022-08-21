@@ -1,9 +1,37 @@
 require("dotenv").config()
-const { User, Profile } = require("../models/paper.js")
-const escapeStringRegexp = require("escape-string-regexp")
-const { ManagementClient } = require("auth0")
 const express = require("express")
+// const escapeStringRegexp = await import("escape-string-regexp")
+const escapeStringRegexp = require("escape-string-regexp")
 
+// const { managementClient } = require("auth0")
+const ManagementClient = require("auth0").ManagementClient
+
+const { User, Profile } = require("../models/paper")
+
+// import { } from 'dotenv/config'
+// import { User, Profile } from "../models/paper.js"
+// import { ManagementClient } from "auth0"
+// import escapeStringRegexp from "escape-string-regexp"
+// import express from "express"
+
+// Client auth0 
+const management = new ManagementClient({
+  grant_type: 'client_credentials',
+  clientId: process.env.AUTH0_CLIENT_ID,
+  clientSecret: process.env.AUTH0_CLIENT_SECRET,
+  domain: process.env.AUTH0_DOMAIN
+})
+
+// Middleware
+const getUser = async (req, res, next) => {
+  try {
+    res.user = await User.findOne(req.auth0[process.env.SERVICE_SITE])
+    if (res.paper = null) return res.status(404).json({ message: "Can't find the project" })
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+  next()
+}
 const userRoutes = express.Router()
 
 userRoutes.get('/checkProfile', (req, res) => {
@@ -88,23 +116,5 @@ userRoutes.get('/search', async (req, res) => {
   }
 })
 
-// Client auth0 
-const management = new ManagementClient({
-  grant_type: 'client_credentials',
-  clientId: process.env.AUTH0_CLIENT_ID,
-  clientSecret: process.env.AUTH0_CLIENT_SECRET,
-  domain: process.env.AUTH0_DOMAIN
-})
-
-// Middleware
-const getUser = async (req, res, next) => {
-  try {
-    res.user = await User.findOne(req.auth0[process.env.SERVICE_SITE])
-    if (res.paper = null) return res.status(404).json({ message: "Can't find the project" })
-  } catch (err) {
-    return res.status(400).json({ message: err.message })
-  }
-  next()
-}
 
 module.exports = userRoutes
