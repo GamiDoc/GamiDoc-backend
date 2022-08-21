@@ -1,23 +1,24 @@
 const mongoose = require("mongoose")
+var Schema = mongoose.Schema
 const { Profile, User } = require("./user")
 // import mongoose from "mongoose"
 // import { Profile, User } from "./user.js";
 
-const reviewSchema = new mongoose.Schema({
-  Author: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
-  Paper: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "Paper" },
+const reviewSchema = new Schema({
+  Author: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+  Paper: { type: Schema.Types.ObjectId, required: true, ref: "Paper" },
   Comment: { type: String, default: "" },
   Approved: { type: Boolean, required: true },
   ReviewDate: { type: Date, default: new Date() }
 });
 
-const paperSchema = new mongoose.Schema({
+const paperSchema = new Schema({
 
-  Author: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
+  Author: { type: Schema.Types.ObjectId, required: true, ref: "User" },
   Title: { type: String, required: true },
 
   Approved: { type: Boolean, default: false },
-  Reviews: [{ type: mongoose.Schema.Types.ObjectId, required: false, ref: "Review" }],
+  Reviews: [{ type: Schema.Types.ObjectId, required: false, ref: "Review" }],
 
   // Parametri divisi uno per uno 
   Aestetics: {
