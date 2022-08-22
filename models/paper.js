@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
 var Schema = mongoose.Schema
-const { Profile, User } = require("./user")
 // import mongoose from "mongoose"
 // import { Profile, User } from "./user.js";
 

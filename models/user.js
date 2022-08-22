@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
 var Schema = mongoose.Schema
-const { Paper, Review } = require("./paper")
 // import { Paper, Review } from "./paper.js"
 // import mongoose from "mongoose"
 
