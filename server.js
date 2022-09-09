@@ -30,8 +30,8 @@ const jwtCheck = expressjwt({
     jwksRequestsPerMinute: 5,
     jwksUri: 'https://' + process.env.AUTH0_DOMAIN + '/.well-known/jwks.json'
   }),
-  audience: process.env.HEROKU_APP_NAME ? 'https://' + process.env.HEROKU_APP_NAME + '.herokuapp.com' : 'http://localhost:3000',
-  issuer: 'https://' + process.env.AUTH0_DOMAIN + "/",
+  aud: process.env.HEROKU_APP_NAME ? 'https://' + process.env.HEROKU_APP_NAME + '.herokuapp.com' : 'http://localhost:3000',
+  //  issuer: 'https://' + process.env.AUTH0_DOMAIN + "/",
   algorithms: ['RS256']
 })
 
