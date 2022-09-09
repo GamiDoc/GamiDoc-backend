@@ -22,6 +22,17 @@ const paperRoutes = require("./routes/paper")
 // import userRoutes from "./routes/user.js"
 // import paperRoutes from "./routes/paper.js"
 
+// prova controllo errori 
+const errController = (err, req, res, next) => {
+  const error = { ...err }
+  error.message = err.message
+  console.log(error)
+  if (error.code === '11000') {
+    return res.status(400).json({ error: error.message })
+  }
+  return res.status(500).json({ error: error.message })
+}
+
 // AUTH0 
 const jwtCheck = expressjwt({
   secret: jwks.expressJwtSecret({
@@ -30,8 +41,8 @@ const jwtCheck = expressjwt({
     jwksRequestsPerMinute: 5,
     jwksUri: 'https://' + process.env.AUTH0_DOMAIN + '/.well-known/jwks.json'
   }),
-  aud: process.env.HEROKU_APP_NAME ? 'https://' + process.env.HEROKU_APP_NAME + '.herokuapp.com' : 'http://localhost:3000',
-  //  issuer: 'https://' + process.env.AUTH0_DOMAIN + "/",
+  audience: process.env.HEROKU_APP_NAME ? 'https://' + process.env.HEROKU_APP_NAME + '.herokuapp.com' : 'http://localhost:5000',
+  issuer: 'https://' + process.env.AUTH0_DOMAIN + "/",
   algorithms: ['RS256']
 })
 
@@ -59,8 +70,9 @@ app.use(cors({
 // Routes
 app.use("/paper", paperRoutes)
 app.use("/user", userRoutes)
+app.use(errController)
 
 // accendi a porta 5000 
 const port = process.env.PORT ?? 5000
-const server = app.listen(port, () => console.log("Server aperto!"))
+const server = app.listen(port, () => console.log("Server aperto! Port = ", port))
 
