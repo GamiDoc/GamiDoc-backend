@@ -122,7 +122,8 @@ paperRoutes.post('/reviews/new', async (req, res) => {
 
     // controlla che la review non sia stata approvata nel frattempo 
     let paper = await Paper.findOne({ paper: req.body.paper }).populate("Reviews")
-    if (paper.Approved == true) return res.status(400).json({ message: "The paper has already been approved " })
+    if (paper.Approved == true) return res.status(401).json({ message: "The paper has already been approved " })
+    if (paper.Author == user._id) return res.status(401).json({ message: " Cant leave a review to your own paper" })
 
     // crea review e la salva  
     let review = new Review({
