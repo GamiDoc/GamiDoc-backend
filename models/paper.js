@@ -18,43 +18,62 @@ const paperSchema = new Schema({
 
   Approved: { type: Boolean, default: false },
   Reviews: [{ type: Schema.Types.ObjectId, required: false, ref: "Review" }],
+  Description: {
+    type: String,
+  },
 
   // Parametri divisi uno per uno 
-  Aestetics: {
+  Behavior: {
+    type: String,
+    required: true
+  },
+  Domain: {
+    type: String,
+    required: true
+  },
+  Aim: {
+    type: String,
+    required: true
+  },
+  Device: {
+    type: String,
+    required: true
+  },
+  Modality: {
+    type: String,
+    required: true
+  },
+  Dynamics: {
+    type: String,
+    required: true
+  },
+  Personalization: {
+    type: String,
+    required: true
+  },
+  Timing: {
     type: String,
     required: true
   },
   Context: {
     type: String,
-    enum: [], // behavior
     required: true
   },
   Affordances: {
     type: String,
-    // ne servono un sacco 
-    required: true
-  },
-  Device: {
-    type: String,
-    enum: [],
-    required: true
-  },
-  Modality: {
-    type: String,
-    enum: [],
-    required: true
-  },
-  Feedback: {
-    type: String,
-    enum: [],
     required: true
   },
   Rules: {
     type: String,
-    enum: [],
     required: true
   },
-  Pdf: Buffer,
+  Aestetics: {
+    type: String,
+    required: true
+  },
+  Pdf: {
+    BsonType: "binData"
+  },
   // ultima modifica di un paper magari inutile perchè no patch dopo review, da vedere  
   // LastSave:{ type: Date, default: new Date() }
 })

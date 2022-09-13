@@ -55,7 +55,7 @@ const management = new ManagementClient({
 })
 
 // DB 
-mongoose.connect(process.env.DATABASE, { useNewUrlParser: true })
+mongoose.connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 })
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("DB aperto!"));

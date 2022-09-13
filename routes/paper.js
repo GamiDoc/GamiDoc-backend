@@ -30,16 +30,23 @@ paperRoutes.post("/new", async (req, res) => {
     email: req.auth[process.env.SERVICE_SITE]
   });
   const paper = new Paper({
-    title: req.title,
-    Reviews: req.review,
-    Aesteics: req.aestetics,
-    Context: req.context,
-    Affordances: req.affordances,
+    Author: user._id,
+    Title: req.title,
+    Description: req.description,
+
+    Behavior: req.behavior,
+    Domain: req.domain,
+    Aim: req.aim,
     Device: req.device,
     Modality: req.modality,
-    Feedback: req.feedback,
+    Dynamics: req.dynamics,
+    Personalization: req.personalization,
+    Timing: req.timing,
+    Context: req.context,
+    Affordances: req.affordances,
     Rules: req.rules,
-    Author: user._id
+    Aestheics: req.aesthetics,
+    Pdf: req.pdf
   })
   try {
     await paper.save();
