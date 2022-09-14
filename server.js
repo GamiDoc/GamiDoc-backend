@@ -43,7 +43,7 @@ const jwtCheck = expressjwt({
   }),
   audience: process.env.HEROKU_APP_NAME ? 'https://' + process.env.HEROKU_APP_NAME + '.herokuapp.com' : 'http://localhost:5000',
   issuer: 'https://' + process.env.AUTH0_DOMAIN + "/",
-  algorithms: ['RS256']
+  algorithms: ['S256']
 })
 
 
