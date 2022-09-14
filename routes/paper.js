@@ -1,4 +1,4 @@
-require("dotenv").config()
+// require("dotenv").config()
 const { Paper, Review } = require("../models/paper")
 const { Profile, User } = require("../models/user")
 const escapeStringRegexp = require('escape-string-regexp')

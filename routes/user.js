@@ -1,4 +1,4 @@
-require("dotenv").config()
+// require("dotenv").config()
 const express = require("express")
 // const escapeStringRegexp = await import("escape-string-regexp")
 const escapeStringRegexp = require("escape-string-regexp")
