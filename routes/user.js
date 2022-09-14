@@ -36,7 +36,7 @@ const userRoutes = express.Router()
 
 userRoutes.get('/checkProfile', (req, res) => {
   management.getUser({ id: req.auth.sub }, (err, user) => {
-    if (err) return res.status(500).json({ error: "broken connection with auth0", data:err })
+    if (err) return res.status(500).json({ error: "broken connection with auth0", data: err })
     if (user.user_metadata?.first_config) return res.status(200).json({ status: true });
     return res.status(200).json({ status: false })
   })
