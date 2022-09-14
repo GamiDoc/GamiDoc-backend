@@ -46,7 +46,7 @@ paperRoutes.post("/new", async (req, res) => {
     Affordances: req.affordances,
     Rules: req.rules,
     Aestheics: req.aesthetics,
-    Pdf: req.pdf
+    // Pdf: req.pdf
   })
   try {
     await paper.save();

@@ -71,11 +71,9 @@ const paperSchema = new Schema({
     type: String,
     required: true
   },
-  Pdf: {
-    BsonType: "binData"
-  },
-  // ultima modifica di un paper magari inutile perchè no patch dopo review, da vedere  
-  // LastSave:{ type: Date, default: new Date() }
+  // Pdf: {
+  //   BsonType: "binData"
+  // },
 })
 
 
