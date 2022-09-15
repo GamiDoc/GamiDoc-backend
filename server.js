@@ -41,7 +41,8 @@ const jwtCheck = expressjwt({
     jwksRequestsPerMinute: 5,
     jwksUri: 'https://' + process.env.AUTH0_DOMAIN + '/.well-known/jwks.json'
   }),
-  audience: "https://" + process.env.AUTH0_DOMAIN + "/api/v2",//process.env.HEROKU_APP_NAME ? 'https://' + process.env.HEROKU_APP_NAME + '.herokuapp.com' : 'http://localhost:5000',
+  // audience: "https://" + process.env.AUTH0_DOMAIN + "/api/v2",
+  audience: process.env.AUDIENCE,
   issuer: 'https://' + process.env.AUTH0_DOMAIN + "/",
   algorithms: ['S256']
 })
@@ -55,7 +56,7 @@ const management = new ManagementClient({
 })
 
 // DB 
-mongoose.connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 })
+mongoose.connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true })
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("DB aperto!"));
