@@ -1,7 +1,8 @@
-// require("dotenv").config();
+require("dotenv").config();
 const express = require("express")
 const app = express()
 const mongoose = require("mongoose")
+const { MongoClient, ServerApiVersion } = require('mongodb');
 const { expressjwt } = require('express-jwt')
 const jwks = require('jwks-rsa')
 
@@ -41,10 +42,9 @@ const jwtCheck = expressjwt({
     jwksRequestsPerMinute: 5,
     jwksUri: 'https://' + process.env.AUTH0_DOMAIN + '/.well-known/jwks.json'
   }),
-  // audience: "https://" + process.env.AUTH0_DOMAIN + "/api/v2",
   audience: process.env.AUDIENCE,
   issuer: 'https://' + process.env.AUTH0_DOMAIN + "/",
-  algorithms: ['S256']
+  algorithms: ['RS256']
 })
 
 
@@ -56,8 +56,15 @@ const management = new ManagementClient({
 })
 
 // DB 
-mongoose.connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => console.error(err))
 const db = mongoose.connection;
+// const uri = process.env.DATABASE
+// const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+// client.connect(err => {
+//   const collection = client.db("test").collection("devices");
+//   // perform actions on the collection object
+//   client.close();
+// });
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("DB aperto!"));
 

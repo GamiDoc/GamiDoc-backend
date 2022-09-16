@@ -6,7 +6,7 @@ const escapeStringRegexp = require("escape-string-regexp")
 // const { managementClient } = require("auth0")
 const ManagementClient = require("auth0").ManagementClient
 
-const { User, Profile } = require("../models/paper")
+const { User, Profile } = require("../models/user")
 
 // import { } from 'dotenv/config'
 // import { User, Profile } from "../models/paper.js"
@@ -19,7 +19,7 @@ const management = new ManagementClient({
   grant_type: 'client_credentials',
   clientId: process.env.AUTH0_CLIENT_ID,
   clientSecret: process.env.AUTH0_CLIENT_SECRET,
-  domain: process.env.AUTH0_DOMAIN
+  domain: process.env.AUTH0_DOMAIN,
 })
 
 // Middleware
@@ -41,6 +41,7 @@ userRoutes.get('/checkProfile', (req, res) => {
     return res.status(200).json({ status: false })
   })
 })
+
 // FirstConfig di uno user 
 userRoutes.post('/firstConfig', async (req, res, next) => {
   try {
@@ -71,8 +72,10 @@ userRoutes.post('/firstConfig', async (req, res, next) => {
       })
     }
     management.updateUserMetadata({ id: req.auth.sub }, { first_config: true }, (err, user) => {
-      console.log(err)
-      if (err) return res.status(500).json({ error: "auth0 connection failed!" })
+      if (err) {
+        console.log(err)
+        return res.status(500).json({ error: "auth0 connection failed!" })
+      }
       console.log(user)
       return res.status(200).json({ status: 'ok' })
     })

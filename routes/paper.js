@@ -1,6 +1,6 @@
-// require("dotenv").config()
-const { Paper, Review } = require("../models/paper")
+// require("dotenv").config() const { Paper, Review } = require("../models/paper")
 const { Profile, User } = require("../models/user")
+const { Paper, Review } = require("../models/paper")
 const escapeStringRegexp = require('escape-string-regexp')
 const express = require("express")
 
@@ -26,35 +26,39 @@ async function getPaper(req, res, next) {
 }
 // create a paper ( user_id needed ) 
 paperRoutes.post("/new", async (req, res) => {
-  const user = await user.findOne({
+  const user = await User.findOne({
     email: req.auth[process.env.SERVICE_SITE]
   });
+  console.log(req.body)
   const paper = new Paper({
     Author: user._id,
-    Title: req.title,
-    Description: req.description,
+    Title: req.body.title,
+    Description: req.body.description,
 
-    Behavior: req.behavior,
-    Domain: req.domain,
-    Aim: req.aim,
-    Device: req.device,
-    Modality: req.modality,
-    Dynamics: req.dynamics,
-    Personalization: req.personalization,
-    Timing: req.timing,
-    Context: req.context,
-    Affordances: req.affordances,
-    Rules: req.rules,
-    Aestheics: req.aesthetics,
+    Behavior: req.body.behavior,
+    Domain: req.body.domain,
+    Aim: req.body.aim,
+    Device: req.body.device,
+    Modality: req.body.modality,
+    Dynamics: req.body.dynamics,
+    Personalization: req.body.personalization,
+    Timing: req.body.timing,
+    Context: req.body.context,
+    Affordances: req.body.affordances,
+    Rules: req.body.rules,
+    Aestheics: req.body.aesthetics,
     // Pdf: req.pdf
   })
   try {
-    await paper.save();
-    const profile = await User.findOne({ User: user._id });
-    profile.papers.push(paper);
-    await profile.save();
+    await paper.save().catch(err => console.log(err));
+    // const profile = await Profile.findOne({ User: user._id });
+    // profile.papers.push(paper);
+    // await profile.save().catch(err => console.log(err));;
+    Profile.updateOne({ User: user._id }, { $push: { papers: paper._id } })
+    console.log("ok")
     return res.status(201).json(paper);
   } catch (err) {
+    console.log("error")
     return res.status(400).json({ message: err.message })
   }
 })

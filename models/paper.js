@@ -25,51 +25,39 @@ const paperSchema = new Schema({
   // Parametri divisi uno per uno 
   Behavior: {
     type: String,
-    required: true
   },
   Domain: {
     type: String,
-    required: true
   },
   Aim: {
     type: String,
-    required: true
   },
   Device: {
     type: String,
-    required: true
   },
   Modality: {
     type: String,
-    required: true
   },
   Dynamics: {
     type: String,
-    required: true
   },
   Personalization: {
     type: String,
-    required: true
   },
   Timing: {
     type: String,
-    required: true
   },
   Context: {
     type: String,
-    required: true
   },
   Affordances: {
     type: String,
-    required: true
   },
   Rules: {
     type: String,
-    required: true
   },
-  Aestetics: {
+  Aesthetics: {
     type: String,
-    required: true
   },
   // Pdf: {
   //   BsonType: "binData"
