@@ -1,15 +1,8 @@
-// require("dotenv").config() const { Paper, Review } = require("../models/paper")
 const { Profile, User } = require("../models/user")
 const { Paper, Review } = require("../models/paper")
 const escapeStringRegexp = require('escape-string-regexp')
 const express = require("express")
-
-// import { } from "dotenv/config"
-// import { Paper, Review } from "../models/paper.js"
-// import { Profile, User } from "../models/user.js"
-// import escapeStringRegexp from 'escape-string-regexp'
-// import express from "express"
-
+const paper = require("../models/paper")
 const paperRoutes = express.Router()
 
 // Middleware
@@ -47,13 +40,9 @@ paperRoutes.post("/new", async (req, res) => {
     Affordances: req.body.affordances,
     Rules: req.body.rules,
     Aestheics: req.body.aesthetics,
-    // Pdf: req.pdf
   })
   try {
     await paper.save().catch(err => console.log(err));
-    // const profile = await Profile.findOne({ User: user._id });
-    // profile.papers.push(paper);
-    // await profile.save().catch(err => console.log(err));;
     Profile.updateOne({ User: user._id }, { $push: { papers: paper._id } })
     console.log("ok")
     return res.status(201).json(paper);
@@ -63,24 +52,18 @@ paperRoutes.post("/new", async (req, res) => {
   }
 })
 
-// OK non ha molto senso, da rifare 
-// get paper by  paper_id 
-// paperRoutes.get('/:_id', getPaper, async (req, res) => {
-//   const user = await User.findOne({ Email: req.auth[process.env.SERVICE_SITE]
-//   })
-//   if (user._id.toString() !== res.paper.Author.toString()) { return res.status(403).json({ message: 'Forbidden' }) }
-//   return res.status(200).json(res.paper)
-// })
-
-// get all paper of a user  
+// get all your papers 
 paperRoutes.get('/allPapers', async (req, res) => {
   const user = await User.findOne({
     Email: req.auth[process.env.SERVICE_SITE]
   })
   try {
     let profile = await Profile.findOne({ User: User._id })
-    let papers = profile.papers
-    return res.status(200).json(papers)
+    profile.populate("Papers").then(() => {
+      let papers = profile.Papers
+      return res.status(200).json(papers)
+    })
+
   } catch (err) {
     return res.status(400).json({ message: err.message })
   }
@@ -89,7 +72,15 @@ paperRoutes.get('/allPapers', async (req, res) => {
 // Get feed of the last 10 reviewable papers 
 paperRoutes.get("/feed", async (req, res) => {
   try {
-    let reviewable = Paper.find({ Approved: false }).sort({ _id: 1 }).limit(10)
+
+    const user = await User.findOne({
+      Email: req.auth[process.env.SERVICE_SITE]
+    })
+
+    let reviewable
+    if (user) reviewable = Paper.find({ Approved: false }).$where(() => { return this.Author != user._id }).sort({ _id: 1 }).limit(10)
+    else reviewable = Paper.find({ Approved: false }).sort({ _id: 1 }).limit(10)
+
     return res.status(200).json(reviewable)
   } catch (err) {
     return res.status(400).json({ message: err.message })
@@ -121,7 +112,7 @@ paperRoutes.get('/search/', async (req, res) => {
   }
 })
 
-// post review of a paper ( user_id and paper_id needed ) 
+// post review of a paper ( paper_id needed ) 
 paperRoutes.post('/reviews/new', async (req, res) => {
   const user = await User.findOne({
     Email: req.auth[process.env.SERVICE_SITE]
@@ -132,7 +123,7 @@ paperRoutes.post('/reviews/new', async (req, res) => {
     if (profile.Reviewer == false) return res.status(400).json({ message: "l'utente non è un reviewer" })
 
     // controlla che la review non sia stata approvata nel frattempo 
-    let paper = await Paper.findOne({ paper: req.body.paper }).populate("Reviews")
+    let paper = await Paper.findOne({ paper: req.body.paperID })
     if (paper.Approved == true) return res.status(401).json({ message: "The paper has already been approved " })
     if (paper.Author == user._id) return res.status(401).json({ message: " Cant leave a review to your own paper" })
 
@@ -145,17 +136,18 @@ paperRoutes.post('/reviews/new', async (req, res) => {
     })
     await review.save()
 
-    // inserisci la review dentro lo schema del profilo 
-    profile.PaperReviews.push(review)
-    await profile.save()
+    // inserisci la review dentro lo schema del profilo che l'ha inviata 
+    Profile.updateOne({ User: user._id }, { $push: { Reviews: review._id } })
+    // Inserisci review nel suo relativo Paper
+    Paper.updateOne({ _id: paper._id }, { $push: { Reviews: review._id } })
 
-    // inserisci la review dentro lo schema del paper e controlla se paper è da approvare 
-    paper.Reviews.push(review)
-    let plenght = paper.Reviews.lenght
+    // Controlla se paper è da approvare 
+    let plenght = paper.Reviews.lenght // non so se legale, da provare
     if (plenght >= 3) {
+      paper.populate("Reviews")
       let vote;
       for (let i = 0; i < plenght; i++) {
-        if (paper.reviews[i].Approved == true) vote++
+        if (paper.Reviews[i].Approved == true) vote++
       }
       if (vote > (plenght / 2)) paper.Approved = true
     }
@@ -170,13 +162,13 @@ paperRoutes.get('/reviews/user', async (req, res) => {
   const user = await User.findOne({
     Email: req.auth[process.env.SERVICE_SITE]
   })
-  try {
-    let profile = await Profile.findOne({ User: user._id })
-    let reviews = profile.reviews
+  let profile = await Profile.findOne({ User: user._id })
+  profile.populate("Reviews").then(() => {
+    let reviews = profile.Reviews
     return res.status(200).json(reviews)
-  } catch (err) {
+  }).catch(err => {
     return res.status(400).json({ message: err.message })
-  }
+  })
 })
 
 // Get all the reviews of a paper
@@ -185,9 +177,10 @@ paperRoutes.get('/reviews/paper', getPaper, async (req, res) => {
     Email: req.auth[process.env.SERVICE_SITE]
   })
   if (user._id.toString() !== res.paper.Author.toString()) { return res.status(403).json({ message: 'Forbidden' }) }
-  return res.status(200).json(res.paper.Reviews)
+  res.paper.populate("Reviews").then(() => {
+    return res.status(200).json(res.paper.Reviews)
+  }
+  )
 })
-
-
 
 module.exports = paperRoutes 

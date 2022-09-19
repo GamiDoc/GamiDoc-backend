@@ -1,7 +1,5 @@
 const mongoose = require("mongoose")
 var Schema = mongoose.Schema
-// import { Paper, Review } from "./paper.js"
-// import mongoose from "mongoose"
 
 const userSchema = Schema({
   Email: { type: String, required: true, },

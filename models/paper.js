@@ -1,7 +1,5 @@
 const mongoose = require("mongoose")
 var Schema = mongoose.Schema
-// import mongoose from "mongoose"
-// import { Profile, User } from "./user.js";
 
 const reviewSchema = new Schema({
   Author: { type: Schema.Types.ObjectId, required: true, ref: "User" },

@@ -1,43 +1,25 @@
-// require("dotenv").config()
 const express = require("express")
-// const escapeStringRegexp = await import("escape-string-regexp")
+const userRoutes = express.Router()
 const escapeStringRegexp = require("escape-string-regexp")
-
-// const { managementClient } = require("auth0")
 const ManagementClient = require("auth0").ManagementClient
-
 const { User, Profile } = require("../models/user")
 
-// import { } from 'dotenv/config'
-// import { User, Profile } from "../models/paper.js"
-// import { ManagementClient } from "auth0"
-// import escapeStringRegexp from "escape-string-regexp"
-// import express from "express"
-
-// Client auth0 
+// Client auth0 per m2m
 const management = new ManagementClient({
-  grant_type: 'client_credentials',
+  grant_type: 'client_credentials', // Tipo di grant, trovi gli altri in specifiche oauth2 !! 
   clientId: process.env.AUTH0_CLIENT_ID,
   clientSecret: process.env.AUTH0_CLIENT_SECRET,
   domain: process.env.AUTH0_DOMAIN,
 })
 
-// Middleware
-const getUser = async (req, res, next) => {
-  try {
-    res.user = await User.findOne(req.auth0[process.env.SERVICE_SITE])
-    if (res.paper = null) return res.status(404).json({ message: "Can't find the project" })
-  } catch (err) {
-    return res.status(400).json({ message: err.message })
-  }
-  next()
-}
-const userRoutes = express.Router()
-
+// Controllo se ho già settato i metadata per questo user, quindi se ho creato i metadati per lui 
 userRoutes.get('/checkProfile', (req, res) => {
   management.getUser({ id: req.auth.sub }, (err, user) => {
     if (err) return res.status(500).json({ error: "broken connection with auth0", data: err })
     if (user.user_metadata?.first_config) return res.status(200).json({ status: true });
+    // const profile = await Profile.findOne({ User: user._id });
+    // profile.papers.push(paper);
+    // await profile.save().catch(err => console.log(err));;
     return res.status(200).json({ status: false })
   })
 })
@@ -58,9 +40,12 @@ userRoutes.post('/firstConfig', async (req, res, next) => {
       await user.save()
     }
     let profile = await Profile.findOneAndUpdate(
-      { user: user._id },
-      { $set: { Description: req.body.description } },
-      { Reviewer: true }
+      { User: user._id },
+      {
+        $set: {
+          Description: req.body.description, Reviewer: true
+        }
+      },
     )
     if (!profile) {
       profile = await Profile.create({
@@ -85,12 +70,10 @@ userRoutes.post('/firstConfig', async (req, res, next) => {
 })
 
 // Ottieni il tuo profilo 
-userRoutes.get('/me', getUser, async (req, res) => {
-  // Con populate carichiamo la tabella di user dentro il profilo,
-  // a seconda di come viene fatta la pagina potrebbe essere usato anche per i paper e le review  
-  const profile = await Profile.findOne({ user: req.user._id })
-    .populate('User')
-  if (profile == null) return res.status(404).json({ error: "There is no Profile!" })
+userRoutes.get('/me', async (req, res) => {
+  // Con populate carichiamo la tabella di user dentro il profilo, a seconda di come viene fatta la pagina potrebbe essere usato anche per i paper e le review  
+  const profile = await Profile.findOne({ Email: req.auth[process.env.SERVICE_SITE] }).populate('User')
+  if (profile == null) return res.status(404).json({ error: "There is no Profile with this id !" })
   return res.status(200).json(profile);
 })
 
@@ -101,7 +84,7 @@ userRoutes.get('/search', async (req, res) => {
     let n = 10
     let page = req.body.pageN
     if (req.body.keyWord) {
-      const $regex = escapeStringRegexp(req.body.keyWord)
+      const $regex = escapeStringRegexp(req.body.criteria)
       papers = await User.find({
         title: { $regex, $options: 'i' }
       })
@@ -118,6 +101,5 @@ userRoutes.get('/search', async (req, res) => {
     res.status(500).json({ message: err.message })
   }
 })
-
 
 module.exports = userRoutes

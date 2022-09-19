@@ -1,4 +1,4 @@
-// require("dotenv").config();
+require("dotenv").config();
 const express = require("express")
 const app = express()
 const mongoose = require("mongoose")
@@ -6,24 +6,13 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const { expressjwt } = require('express-jwt')
 const jwks = require('jwks-rsa')
 
-// const { managementClient } = require('auth0')
 const ManagementClient = require("auth0").ManagementClient
 
 const cors = require("cors")
 const userRoutes = require("./routes/user")
 const paperRoutes = require("./routes/paper")
-
-// import { } from "dotenv/config"
-// import express from "express"
-// import mongoose from "mongoose"
-// import expressjwt from "express-jwt"
-// import jwks from "jwks-rsa"
-// import ManagementClient from "auth0"
-// import cors from "cors"
-// import userRoutes from "./routes/user.js"
-// import paperRoutes from "./routes/paper.js"
-
 // prova controllo errori 
+
 const errController = (err, req, res, next) => {
   const error = { ...err }
   error.message = err.message
