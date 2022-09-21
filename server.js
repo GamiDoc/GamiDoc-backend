@@ -2,10 +2,9 @@ require("dotenv").config();
 const express = require("express")
 const app = express()
 const mongoose = require("mongoose")
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const { expressjwt } = require('express-jwt')
 const jwks = require('jwks-rsa')
-
+const bodyParser = require("body-parser")
 const ManagementClient = require("auth0").ManagementClient
 
 const cors = require("cors")
@@ -47,18 +46,14 @@ const management = new ManagementClient({
 // DB 
 mongoose.connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => console.error(err))
 const db = mongoose.connection;
-// const uri = process.env.DATABASE
-// const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-// client.connect(err => {
-//   const collection = client.db("test").collection("devices");
-//   // perform actions on the collection object
-//   client.close();
-// });
+
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("DB aperto!"));
 
 // Middleware 
-app.use(express.json())
+// app.use(express.json())
+app.use(bodyParser.json({ limit: "15mb" }))
+app.use(bodyParser.urlencoded({ limit: '15mb', extended: true }));
 app.use(jwtCheck)
 app.use(cors({
   origin: "*"

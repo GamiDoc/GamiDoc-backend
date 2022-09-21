@@ -57,13 +57,19 @@ const paperSchema = new Schema({
   Aesthetics: {
     type: String,
   },
-  // Pdf: {
-  //   BsonType: "binData"
-  // },
+  Pdf: {
+    type: Buffer,
+    required: true
+  },
 })
 
-
 // i controlli sulle variabili sarebbe meglio metterli qui come schemas, tipo controllo sul nome o sui contenuti dei campi 
+paperSchema.virtual("pdfInfo").get(
+  () => {
+    return `${this.Pdf.toString("base64")} `
+  }
+)
+
 
 const paper = mongoose.model("Paper", paperSchema)
 const review = mongoose.model("Review", reviewSchema)

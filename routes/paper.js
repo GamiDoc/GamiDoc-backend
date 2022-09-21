@@ -2,7 +2,6 @@ const { Profile, User } = require("../models/user")
 const { Paper, Review } = require("../models/paper")
 const escapeStringRegexp = require('escape-string-regexp')
 const express = require("express")
-const paper = require("../models/paper")
 const paperRoutes = express.Router()
 
 // Middleware
@@ -10,7 +9,7 @@ async function getPaper(req, res, next) {
   try {
     res.paper = await Paper.findById(req.params._id)
     if (res.paper == null) {
-      return res.status(404).json({ message: 'Cannot find project ' })
+      return res.status(404).json({ message: 'Cannot find Paper' })
     }
   } catch (err) {
     return res.status(400).json({ message: err.message })
@@ -23,6 +22,7 @@ paperRoutes.post("/new", async (req, res) => {
     email: req.auth[process.env.SERVICE_SITE]
   });
   console.log(req.body)
+  if (req.body.pdf == null) return;
   const paper = new Paper({
     Author: user._id,
     Title: req.body.title,
@@ -41,16 +41,24 @@ paperRoutes.post("/new", async (req, res) => {
     Rules: req.body.rules,
     Aestheics: req.body.aesthetics,
   })
+  paper.Pdf = new Buffer.from(req.body.pdf, "base64")
   try {
-    await paper.save().catch(err => console.log(err));
-    Profile.updateOne({ User: user._id }, { $push: { papers: paper._id } })
-    console.log("ok")
+    await paper.save()
+    await Profile.updateOne({ User: user._id }, { $push: { papers: paper._id } })
+    console.log("Ok")
     return res.status(201).json(paper);
   } catch (err) {
-    console.log("error")
+    console.log({ Error: err })
     return res.status(400).json({ message: err.message })
   }
 })
+
+// return paper based on id 
+paperRoutes.get("/:_id", getPaper, async (req, res) => {
+  delete res.paper.Reviews
+  return res.status(400)
+})
+
 
 // get all your papers 
 paperRoutes.get('/allPapers', async (req, res) => {
@@ -58,11 +66,22 @@ paperRoutes.get('/allPapers', async (req, res) => {
     Email: req.auth[process.env.SERVICE_SITE]
   })
   try {
-    let profile = await Profile.findOne({ User: User._id })
-    profile.populate("Papers").then(() => {
-      let papers = profile.Papers
-      return res.status(200).json(papers)
+    let profile = await Profile.findOne({ User: user._id })
+    await profile.populate("Papers")
+    // .then(() => {
+    // })
+    let papers = []
+    let resInfo = []
+    profile.Papers.toArray((err, data) => {
+      if (err != null) {
+        console.log(err)
+        return
+      }
+      papers = data
     })
+    for (let i; i < papers.lenght; i++)
+      resInfo[i] = { _id: papers[i]._id, Title: papers[i].Title, Author: papers[i].Author, Description: papers[i].Description }
+    return res.status(200).json(resInfo)
 
   } catch (err) {
     return res.status(400).json({ message: err.message })
@@ -72,41 +91,82 @@ paperRoutes.get('/allPapers', async (req, res) => {
 // Get feed of the last 10 reviewable papers 
 paperRoutes.get("/feed", async (req, res) => {
   try {
-
     const user = await User.findOne({
       Email: req.auth[process.env.SERVICE_SITE]
     })
 
     let reviewable
-    if (user) reviewable = Paper.find({ Approved: false }).$where(() => { return this.Author != user._id }).sort({ _id: 1 }).limit(10)
-    else reviewable = Paper.find({ Approved: false }).sort({ _id: 1 }).limit(10)
+    if (user)
+      Paper.find({ Approved: false }).$where(() => { return this.Author != user._id })
+        .sort({ _id: 1 })
+        .limit(10).toArray(function(err, data) {
+          if (err != null) {
+            console.log(err)
+            return
+          }
+          reviewable = data
+        })
+    else
+      Paper.find({ Approved: false })
+        .sort({ _id: 1 })
+        .limit(10)
+        .toArray(function(err, data) {
+          if (err != null) {
+            console.log(err)
+            return
+          }
+          reviewable = data
+        })
 
-    return res.status(200).json(reviewable)
+    let resReview = []
+    for (let i; i < reviewable.lenght; i++)
+      resReview[i] = { _id: reviewable[i]._id, Title: reviewable[i].Title, Author: reviewable[i].Author, Description: reviewable[i].Description }
+
+    return res.status(200).json(resReview)
   } catch (err) {
     return res.status(400).json({ message: err.message })
   }
 })
 
 // paginated research of papers  
-paperRoutes.get('/search/', async (req, res) => {
+paperRoutes.get('/search/:keyword/:pageN ', async (req, res) => {
   try {
     let papers
     let n = 10
-    let page = req.body.pageN
-    if (req.body.keyWord) {
-      const $regex = escapeStringRegexp(req.body.keyWord)
-      papers = await Paper.find({
-        title: { $regex, $options: 'i' }
-      })
+    let page = req.params.pageN
+    if (req.params.keyWord) {
+      const $regex = escapeStringRegexp(req.params.keyWord)
+      await Paper
+        .find({ title: { $regex, $options: 'i' } })
         .skip((n * page) - n)
         .limit(n)
+        .toArray((err, data) => {
+          if (err != null) {
+            console.log(err)
+            return
+          }
+          papers = data
+        })
     } else {
-      papers = await Paper.find().skip((n * page) - n).limit(n)
+      await Paper
+        .find()
+        .skip((n * page) - n)
+        .limit(n)
+        .toArray((err, data) => {
+          if (err != null) {
+            console.log(err)
+            return
+          }
+          papers = data
+        })
     }
     if (!papers) {
       return res.status(404).json({ message: 'no public papers' })
     }
-    return res.status(200).json(papers)
+    let resInfo
+    resInfo[i] = { _id: papers[i]._id, Title: papers[i].Title, Author: papers[i].Author, Description: papers[i].Description }
+    return res.status(200).json(resInfo)
+
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -172,10 +232,11 @@ paperRoutes.get('/reviews/user', async (req, res) => {
 })
 
 // Get all the reviews of a paper
-paperRoutes.get('/reviews/paper', getPaper, async (req, res) => {
+paperRoutes.get('/reviews/paper/:_id', getPaper, async (req, res) => {
   const user = await User.findOne({
     Email: req.auth[process.env.SERVICE_SITE]
   })
+  // Only the owner of the paper can see the reviews
   if (user._id.toString() !== res.paper.Author.toString()) { return res.status(403).json({ message: 'Forbidden' }) }
   res.paper.populate("Reviews").then(() => {
     return res.status(200).json(res.paper.Reviews)
