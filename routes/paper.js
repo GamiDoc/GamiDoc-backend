@@ -41,7 +41,8 @@ paperRoutes.post("/new", async (req, res) => {
     Rules: req.body.rules,
     Aestheics: req.body.aesthetics,
   })
-  paper.Pdf = new Buffer.from(req.body.pdf, "base64")
+  // Ritrasformiamo in binario prima di salvare perchè base64 occupa 1.33 volte lo spazio 
+  paper.Pdf = new Buffer(req.body.pdf, "base64") // no Buffer.from perchè non passiamo un array, è semplicemente il binario 
   try {
     await paper.save()
     await Profile.updateOne({ User: user._id }, { $push: { papers: paper._id } })
@@ -55,7 +56,9 @@ paperRoutes.post("/new", async (req, res) => {
 
 // return paper based on id 
 paperRoutes.get("/:_id", getPaper, async (req, res) => {
-  delete res.paper.Reviews
+  res.pdf = res.paper.pdfInfo
+  res.info = res.paper.restricted
+  delete res.paper
   return res.status(400)
 })
 
@@ -80,7 +83,8 @@ paperRoutes.get('/allPapers', async (req, res) => {
       papers = data
     })
     for (let i; i < papers.lenght; i++)
-      resInfo[i] = { _id: papers[i]._id, Title: papers[i].Title, Author: papers[i].Author, Description: papers[i].Description }
+      // resInfo[i] = { _id: papers[i]._id, Title: papers[i].Title, Author: papers[i].Author, Description: papers[i].Description }
+      resInfo[i] = papers[i].restricted
     return res.status(200).json(resInfo)
 
   } catch (err) {
@@ -120,7 +124,8 @@ paperRoutes.get("/feed", async (req, res) => {
 
     let resReview = []
     for (let i; i < reviewable.lenght; i++)
-      resReview[i] = { _id: reviewable[i]._id, Title: reviewable[i].Title, Author: reviewable[i].Author, Description: reviewable[i].Description }
+      resReview[i] = reviewable[i].restricted
+    // resReview[i] = { _id: reviewable[i]._id, Title: reviewable[i].Title, Author: reviewable[i].Author, Description: reviewable[i].Description }
 
     return res.status(200).json(resReview)
   } catch (err) {
@@ -164,7 +169,9 @@ paperRoutes.get('/search/:keyword/:pageN ', async (req, res) => {
       return res.status(404).json({ message: 'no public papers' })
     }
     let resInfo
-    resInfo[i] = { _id: papers[i]._id, Title: papers[i].Title, Author: papers[i].Author, Description: papers[i].Description }
+    for (let i; i < papers.lenght; i++)
+      resInfo[i] = papers[i].restricted
+    // resInfo[i] = { _id: papers[i]._id, Title: papers[i].Title, Author: papers[i].Author, Description: papers[i].Description }
     return res.status(200).json(resInfo)
 
   } catch (err) {
@@ -243,5 +250,6 @@ paperRoutes.get('/reviews/paper/:_id', getPaper, async (req, res) => {
   }
   )
 })
+
 
 module.exports = paperRoutes 

@@ -70,6 +70,16 @@ paperSchema.virtual("pdfInfo").get(
   }
 )
 
+paperSchema.virtual("restricted").get(
+  () => {
+    return {
+      _id: this._id,
+      Author: this.Author,
+      Title: this.Title,
+      Description: this.Description
+    }
+  }
+)
 
 const paper = mongoose.model("Paper", paperSchema)
 const review = mongoose.model("Review", reviewSchema)
