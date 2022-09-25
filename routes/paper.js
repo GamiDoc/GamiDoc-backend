@@ -18,34 +18,36 @@ async function getPaper(req, res, next) {
 }
 // create a paper ( user_id needed ) 
 paperRoutes.post("/new", async (req, res) => {
-  const user = await User.findOne({
-    email: req.auth[process.env.SERVICE_SITE]
-  });
-  console.log(req.body)
-  if (req.body.pdf == null) return;
-  const paper = new Paper({
-    Author: user._id,
-    Title: req.body.title,
-    Description: req.body.description,
-
-    Behavior: req.body.behavior,
-    Domain: req.body.domain,
-    Aim: req.body.aim,
-    Device: req.body.device,
-    Modality: req.body.modality,
-    Dynamics: req.body.dynamics,
-    Personalization: req.body.personalization,
-    Timing: req.body.timing,
-    Context: req.body.context,
-    Affordances: req.body.affordances,
-    Rules: req.body.rules,
-    Aestheics: req.body.aesthetics,
-  })
-  // Ritrasformiamo in binario prima di salvare perchè base64 occupa 1.33 volte lo spazio 
-  paper.Pdf = new Buffer(req.body.pdf, "base64") // no Buffer.from perchè non passiamo un array, è semplicemente il binario 
   try {
+    const user = await User.findOne({
+      Email: req.auth[process.env.SERVICE_SITE]
+    })
+    console.log(user)
+    console.log(req.body)
+    if (req.body.pdf == null) return;
+    const paper = new Paper({
+      Author: user._id,
+      AuthorNickname: user.Username,
+      Title: req.body.title,
+      Description: req.body.description,
+
+      Behavior: req.body.behavior,
+      Domain: req.body.domain,
+      Aim: req.body.aim,
+      Device: req.body.device,
+      Modality: req.body.modality,
+      Dynamics: req.body.dynamics,
+      Personalization: req.body.personalization,
+      Timing: req.body.timing,
+      Context: req.body.context,
+      Affordances: req.body.affordances,
+      Rules: req.body.rules,
+      Aestheics: req.body.aesthetics,
+    })
+    // Ritrasformiamo in binario prima di salvare perchè base64 occupa 1.33 volte lo spazio 
+    paper.Pdf = new Buffer.from(req.body.pdf, "base64")
+    await Profile.updateOne({ User: user._id }, { $push: { Papers: paper._id } })
     await paper.save()
-    await Profile.updateOne({ User: user._id }, { $push: { papers: paper._id } })
     console.log("Ok")
     return res.status(201).json(paper);
   } catch (err) {
@@ -56,36 +58,46 @@ paperRoutes.post("/new", async (req, res) => {
 
 // return paper based on id 
 paperRoutes.get("/:_id", getPaper, async (req, res) => {
-  res.pdf = res.paper.pdfInfo
-  res.info = res.paper.restricted
+  const pdf = res.paper.pdfInfo
+  const info = res.paper.restricted
   delete res.paper
-  return res.status(400)
+  console.log("resPdf\n " + res.pdf)
+  console.log("resInfo\n " + res.info)
+  return res.status(200).json({ pdf: pdf, info: info })
 })
 
 
 // get all your papers 
-paperRoutes.get('/allPapers', async (req, res) => {
-  const user = await User.findOne({
-    Email: req.auth[process.env.SERVICE_SITE]
-  })
+paperRoutes.get('/all/me', async (req, res) => {
   try {
+    const user = await User.findOne({
+      Email: req.auth[process.env.SERVICE_SITE]
+    })
     let profile = await Profile.findOne({ User: user._id })
     await profile.populate("Papers")
-    // .then(() => {
-    // })
-    let papers = []
+
     let resInfo = []
-    profile.Papers.toArray((err, data) => {
-      if (err != null) {
-        console.log(err)
-        return
-      }
-      papers = data
+    profile.Papers.forEach(element => {
+      resInfo = [...resInfo, element.restricted]
     })
-    for (let i; i < papers.lenght; i++)
-      // resInfo[i] = { _id: papers[i]._id, Title: papers[i].Title, Author: papers[i].Author, Description: papers[i].Description }
-      resInfo[i] = papers[i].restricted
-    return res.status(200).json(resInfo)
+    return res.status(200).json({ data: resInfo })
+
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ message: err.message })
+  }
+})
+
+// get all the papers based on userid 
+paperRoutes.get('/all/:_id', async (req, res) => {
+  try {
+    let profile = await Profile.findOne({ User: req.params._id })
+    await profile.populate("Papers")
+    let resInfo = []
+    profile.Papers.forEach(element => {
+      resInfo = [...resInfo, element.restricted]
+    })
+    return res.status(200).json({ data: resInfo })
 
   } catch (err) {
     return res.status(400).json({ message: err.message })
@@ -123,11 +135,10 @@ paperRoutes.get("/feed", async (req, res) => {
         })
 
     let resReview = []
-    for (let i; i < reviewable.lenght; i++)
-      resReview[i] = reviewable[i].restricted
-    // resReview[i] = { _id: reviewable[i]._id, Title: reviewable[i].Title, Author: reviewable[i].Author, Description: reviewable[i].Description }
-
-    return res.status(200).json(resReview)
+    reviewable.forEach(element => {
+      resReview = [...resReview, element.restricted]
+    });
+    return res.status(200).json({ data: resReview })
   } catch (err) {
     return res.status(400).json({ message: err.message })
   }
@@ -139,40 +150,25 @@ paperRoutes.get('/search/:keyword/:pageN ', async (req, res) => {
     let papers
     let n = 10
     let page = req.params.pageN
-    if (req.params.keyWord) {
-      const $regex = escapeStringRegexp(req.params.keyWord)
-      await Paper
-        .find({ title: { $regex, $options: 'i' } })
-        .skip((n * page) - n)
-        .limit(n)
-        .toArray((err, data) => {
-          if (err != null) {
-            console.log(err)
-            return
-          }
-          papers = data
-        })
-    } else {
-      await Paper
-        .find()
-        .skip((n * page) - n)
-        .limit(n)
-        .toArray((err, data) => {
-          if (err != null) {
-            console.log(err)
-            return
-          }
-          papers = data
-        })
-    }
-    if (!papers) {
-      return res.status(404).json({ message: 'no public papers' })
-    }
-    let resInfo
-    for (let i; i < papers.lenght; i++)
-      resInfo[i] = papers[i].restricted
-    // resInfo[i] = { _id: papers[i]._id, Title: papers[i].Title, Author: papers[i].Author, Description: papers[i].Description }
-    return res.status(200).json(resInfo)
+    const $regex = escapeStringRegexp(req.params.keyWord)
+    await Paper
+      .find({ title: { $regex, $options: 'i' } })
+      .skip((n * page) - n)
+      .limit(n)
+      .toArray((err, data) => {
+        if (err != null) {
+          console.log(err)
+          return
+        }
+        papers = data
+      })
+    if (!papers) return res.status(404).json({ message: 'no public papers' })
+
+    let resInfo = []
+    papers.forEach(element => {
+      resInfo = [...resInfo, element.restricted]
+    })
+    return res.status(200).json({ data: resInfo })
 
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -232,7 +228,7 @@ paperRoutes.get('/reviews/user', async (req, res) => {
   let profile = await Profile.findOne({ User: user._id })
   profile.populate("Reviews").then(() => {
     let reviews = profile.Reviews
-    return res.status(200).json(reviews)
+    return res.status(200).json({ reviews: reviews })
   }).catch(err => {
     return res.status(400).json({ message: err.message })
   })
@@ -246,7 +242,7 @@ paperRoutes.get('/reviews/paper/:_id', getPaper, async (req, res) => {
   // Only the owner of the paper can see the reviews
   if (user._id.toString() !== res.paper.Author.toString()) { return res.status(403).json({ message: 'Forbidden' }) }
   res.paper.populate("Reviews").then(() => {
-    return res.status(200).json(res.paper.Reviews)
+    return res.status(200).json({ reviews: res.paper.Reviews })
   }
   )
 })

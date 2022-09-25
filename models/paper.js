@@ -12,6 +12,7 @@ const reviewSchema = new Schema({
 const paperSchema = new Schema({
 
   Author: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+  AuthorNickname: { type: String, required: true },
   Title: { type: String, required: true },
 
   Approved: { type: Boolean, default: false },
@@ -65,16 +66,16 @@ const paperSchema = new Schema({
 
 // i controlli sulle variabili sarebbe meglio metterli qui come schemas, tipo controllo sul nome o sui contenuti dei campi 
 paperSchema.virtual("pdfInfo").get(
-  () => {
-    return `${this.Pdf.toString("base64")} `
+  function() {
+    return { data: this.Pdf.toString("base64") }
   }
 )
 
 paperSchema.virtual("restricted").get(
-  () => {
+  function() {
     return {
       _id: this._id,
-      Author: this.Author,
+      Author: this.AuthorNickname,
       Title: this.Title,
       Description: this.Description
     }
