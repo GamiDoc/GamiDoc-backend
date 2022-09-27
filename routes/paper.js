@@ -56,16 +56,6 @@ paperRoutes.post("/new", async (req, res) => {
   }
 })
 
-// return paper based on id 
-paperRoutes.get("/:_id", getPaper, async (req, res) => {
-  const pdf = res.paper.pdfInfo
-  const info = res.paper.restricted
-  delete res.paper
-  console.log("resPdf\n " + res.pdf)
-  console.log("resInfo\n " + res.info)
-  return res.status(200).json({ pdf: pdf, info: info })
-})
-
 
 // get all your papers 
 paperRoutes.get('/all/me', async (req, res) => {
@@ -88,24 +78,9 @@ paperRoutes.get('/all/me', async (req, res) => {
   }
 })
 
-// get all the papers based on userid 
-paperRoutes.get('/all/:_id', async (req, res) => {
-  try {
-    let profile = await Profile.findOne({ User: req.params._id })
-    await profile.populate("Papers")
-    let resInfo = []
-    profile.Papers.forEach(element => {
-      resInfo = [...resInfo, element.restricted]
-    })
-    return res.status(200).json({ data: resInfo })
-
-  } catch (err) {
-    return res.status(400).json({ message: err.message })
-  }
-})
-
 // Get feed of the last 10 reviewable papers 
 paperRoutes.get("/feed", async (req, res) => {
+  console.log("dentro")
   try {
     const user = await User.findOne({
       Email: req.auth[process.env.SERVICE_SITE]
@@ -140,6 +115,7 @@ paperRoutes.get("/feed", async (req, res) => {
     });
     return res.status(200).json({ data: resReview })
   } catch (err) {
+    console.log(err)
     return res.status(400).json({ message: err.message })
   }
 })
@@ -193,7 +169,7 @@ paperRoutes.post('/reviews/new', async (req, res) => {
     // crea review e la salva  
     let review = new Review({
       Author: user._id,
-      Paper: req.body.paper,
+      Paper: req.body.paperID,
       Approved: req.body.approved,
       Comment: req.body.comment,
     })
@@ -246,6 +222,31 @@ paperRoutes.get('/reviews/paper/:_id', getPaper, async (req, res) => {
   }
   )
 })
+// get all the papers based on userid 
+paperRoutes.get('/all/:_id', async (req, res) => {
+  try {
+    let profile = await Profile.findOne({ User: req.params._id })
+    await profile.populate("Papers")
+    let resInfo = []
+    profile.Papers.forEach(element => {
+      resInfo = [...resInfo, element.restricted]
+    })
+    return res.status(200).json({ data: resInfo })
 
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+})
+
+
+// return paper based on id 
+paperRoutes.get("/:_id", getPaper, async (req, res) => {
+  const pdf = res.paper.pdfInfo
+  const info = res.paper.restricted
+  delete res.paper
+  console.log("resPdf\n " + res.pdf)
+  console.log("resInfo\n " + res.info)
+  return res.status(200).json({ pdf: pdf, info: info })
+})
 
 module.exports = paperRoutes 
