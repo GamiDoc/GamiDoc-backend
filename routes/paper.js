@@ -80,39 +80,31 @@ paperRoutes.get('/all/me', async (req, res) => {
 
 // Get feed of the last 10 reviewable papers 
 paperRoutes.get("/feed", async (req, res) => {
-  console.log("dentro")
   try {
     const user = await User.findOne({
       Email: req.auth[process.env.SERVICE_SITE]
     })
-
     let reviewable
-    if (user)
-      Paper.find({ Approved: false }).$where(() => { return this.Author != user._id })
-        .sort({ _id: 1 })
-        .limit(10).toArray(function(err, data) {
-          if (err != null) {
-            console.log(err)
-            return
-          }
-          reviewable = data
-        })
-    else
-      Paper.find({ Approved: false })
-        .sort({ _id: 1 })
-        .limit(10)
-        .toArray(function(err, data) {
-          if (err != null) {
-            console.log(err)
-            return
-          }
-          reviewable = data
-        })
-
+    reviewable = await Paper.find({ Approved: false })
+      .sort({ _id: 1 })
+      .limit(10)
     let resReview = []
-    reviewable.forEach(element => {
-      resReview = [...resReview, element.restricted]
-    });
+    // reviewable.forEach(async element => {
+
+    await Promise.all(reviewable.map(async (element) => {
+
+      // check if the user already reviewed  
+      let alreadyReviewed = false
+      await element.populate("Reviews")
+      element.Reviews.forEach(element => {
+        if (element.Author.toString() == user._id) alreadyReviewed = true
+      });
+
+      // non ritorno paper scritti da me 
+      if (alreadyReviewed == false && element.Author.toString() != user._id.toString()) resReview.push(element.restricted)
+      // resReview = [...resReview, element.restricted]
+    }))
+    console.log("got it", resReview)
     return res.status(200).json({ data: resReview })
   } catch (err) {
     console.log(err)
@@ -162,28 +154,41 @@ paperRoutes.post('/reviews/new', async (req, res) => {
     if (profile.Reviewer == false) return res.status(400).json({ message: "l'utente non è un reviewer" })
 
     // controlla che la review non sia stata approvata nel frattempo 
-    let paper = await Paper.findOne({ paper: req.body.paperID })
+    // let paper = await Paper.findOne({ _id: req.body.paperID }).then(() => console.log("trovato il paper"))
+    let paper = await Paper.findById(req.body.paperID) // In teoria non serve .exec() per gestirle la callback perchè c'è await
     if (paper.Approved == true) return res.status(401).json({ message: "The paper has already been approved " })
     if (paper.Author == user._id) return res.status(401).json({ message: " Cant leave a review to your own paper" })
+
+    console.log("PaperID from request:\n", req.body.paperID)
+    console.log("Paper:\n", paper)
+    console.log("Approved:\n", req.body.approved)
+
+    // Per i paper create prima di aggiungere nickname 
+    let nickname
+    (paper.AuthorNickname) ? nickname = paper.AuthorNickname : nickname = "Legacy"
 
     // crea review e la salva  
     let review = new Review({
       Author: user._id,
+      AuthorNickname: nickname,
+      Params: [req.body.types[0], req.body.types[1], req.body.types[2]],
       Paper: req.body.paperID,
       Approved: req.body.approved,
       Comment: req.body.comment,
     })
+    console.log(review)
     await review.save()
 
     // inserisci la review dentro lo schema del profilo che l'ha inviata 
-    Profile.updateOne({ User: user._id }, { $push: { Reviews: review._id } })
+    await Profile.updateOne({ User: user._id }, { $push: { PaperReviews: review._id } }).exec()
     // Inserisci review nel suo relativo Paper
-    Paper.updateOne({ _id: paper._id }, { $push: { Reviews: review._id } })
+    await Paper.updateOne({ _id: paper._id }, { $push: { Reviews: review._id } }).exec()
 
     // Controlla se paper è da approvare 
-    let plenght = paper.Reviews.lenght // non so se legale, da provare
+    let plenght = paper.Reviews.lenght + 1// non so se legale, da provare ps: non è legale 
+    console.log("plenght: " + plenght)
     if (plenght >= 3) {
-      paper.populate("Reviews")
+      await paper.populate("Reviews")
       let vote;
       for (let i = 0; i < plenght; i++) {
         if (paper.Reviews[i].Approved == true) vote++
@@ -191,23 +196,36 @@ paperRoutes.post('/reviews/new', async (req, res) => {
       if (vote > (plenght / 2)) paper.Approved = true
     }
     await paper.save()
+    return res.status(200).json({ output: "Review salvata correttamente", review: review })
   } catch (err) {
+    console.log(err)
     res.status(500).json({ message: err.message })
   }
 })
 
 // Get your reviews by user_id 
 paperRoutes.get('/reviews/user', async (req, res) => {
-  const user = await User.findOne({
-    Email: req.auth[process.env.SERVICE_SITE]
-  })
-  let profile = await Profile.findOne({ User: user._id })
-  profile.populate("Reviews").then(() => {
-    let reviews = profile.Reviews
+  try {
+    const user = await User.findOne({
+      Email: req.auth[process.env.SERVICE_SITE]
+    })
+    let profile = await Profile.findOne({ User: user._id })
+      .populate("PaperReviews")
+    let reviews = profile.PaperReviews
+
+    // console.log(profile)
+    // console.log(reviews)
+    // console.log(profile.PaperReviews)
+
+    await Promise.all(reviews.map(async (review) => {
+      await review.populate("Paper")
+      // papers.push(review.Paper.restricted)
+    }))
     return res.status(200).json({ reviews: reviews })
-  }).catch(err => {
-    return res.status(400).json({ message: err.message })
-  })
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ err: err })
+  }
 })
 
 // Get all the reviews of a paper
@@ -222,6 +240,7 @@ paperRoutes.get('/reviews/paper/:_id', getPaper, async (req, res) => {
   }
   )
 })
+
 // get all the papers based on userid 
 paperRoutes.get('/all/:_id', async (req, res) => {
   try {
@@ -237,7 +256,6 @@ paperRoutes.get('/all/:_id', async (req, res) => {
     return res.status(400).json({ message: err.message })
   }
 })
-
 
 // return paper based on id 
 paperRoutes.get("/:_id", getPaper, async (req, res) => {

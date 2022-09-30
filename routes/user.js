@@ -50,7 +50,7 @@ userRoutes.post('/firstConfig', async (req, res, next) => {
     if (!profile) {
       profile = await Profile.create({
         User: user._id,
-        Description: req.body.Description,
+        Description: req.body.description,
         Papers: [],
         PaperReviews: [],
         Reviewer: true
@@ -68,6 +68,21 @@ userRoutes.post('/firstConfig', async (req, res, next) => {
     next(err)
   }
 })
+
+
+userRoutes.get('/removeFirstConfig', async (req, res) => {
+  management.updateUserMetadata({ id: req.auth.sub }, { first_config: null }, (err, user) => {
+    if (err) {
+      console.log(err)
+      return res.status(500).json({ error: "auth0 connection failed!" })
+    }
+    console.log(user)
+    return res.status(200).json({ status: 'ok' })
+  })
+})
+
+
+
 
 // Ottieni il tuo profilo 
 userRoutes.get('/me', async (req, res) => {

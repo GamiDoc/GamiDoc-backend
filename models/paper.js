@@ -3,9 +3,11 @@ var Schema = mongoose.Schema
 
 const reviewSchema = new Schema({
   Author: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+  AuthorNickname: { type: String },
   Paper: { type: Schema.Types.ObjectId, required: true, ref: "Paper" },
   Comment: { type: String, default: "" },
   Approved: { type: Boolean, required: true },
+  Params: [],
   ReviewDate: { type: Date, default: new Date() }
 });
 
