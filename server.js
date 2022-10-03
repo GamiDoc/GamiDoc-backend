@@ -10,6 +10,7 @@ const ManagementClient = require("auth0").ManagementClient
 const cors = require("cors")
 const userRoutes = require("./routes/user")
 const paperRoutes = require("./routes/paper")
+const draftRoutes = require("./routes/draft")
 // prova controllo errori 
 
 const errController = (err, req, res, next) => {
@@ -63,6 +64,7 @@ app.use(cors({
 // Routes
 app.use("/paper", paperRoutes)
 app.use("/user", userRoutes)
+app.use("/draft", draftRoutes)
 app.use(errController)
 
 // accendi a porta 5000 
