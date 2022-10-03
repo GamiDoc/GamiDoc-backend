@@ -12,6 +12,7 @@ const profileSchema = Schema({
   User: { type: Schema.Types.ObjectId, required: true, ref: "User" },
   Description: { type: String, default: "" },
   Papers: [{ type: Schema.Types.ObjectId, ref: "Paper" }], // Lista di paper pubblicati 
+  Drafts: [{ type: Schema.Types.ObjectId, ref: "Draft" }], // Lista di paper pubblicati 
   PaperReviews: [{ type: Schema.Types.ObjectId, ref: "Review" }], // Lista di paper alle quali è stata assegnata una review 
   Reviewer: { type: Boolean, default: false }
 })
