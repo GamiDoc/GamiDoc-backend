@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose")
 var Schema = mongoose.Schema
 
@@ -8,11 +7,14 @@ const draftSchema = new Schema({
     required: true,
     ref: "User"
   },
+  Title: {
+    type: String,
+  },
   Description: {
     type: String,
   },
-  //  PARAMETRI PAPER 
 
+  //  ----------PARAMETRI PAPER----------
   // CONTEXT  
   Behavior: {
     type: String,
@@ -23,9 +25,9 @@ const draftSchema = new Schema({
   Aim: {
     type: String,
   },
-  TargetAge: {
+  TargetAge: [{
     type: String,
-  },
+  }],
   TargetUser: {
     type: String,
   },
@@ -89,6 +91,7 @@ const draftSchema = new Schema({
 draftSchema.virtual("restricted").get(
   function() {
     return {
+      _id: this._id,
       Author: this.Author,
       Title: this.Title,
       Description: this.Description,
@@ -96,6 +99,7 @@ draftSchema.virtual("restricted").get(
     }
   }
 )
+
 const draft = mongoose.model("Draft", draftSchema)
 module.exports = {
   Draft: draft,

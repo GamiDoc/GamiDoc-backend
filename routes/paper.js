@@ -1,4 +1,5 @@
 const { Profile, User } = require("../models/user")
+const { Draft } = require("../models/draft")
 const { Paper, Review } = require("../models/paper")
 const escapeStringRegexp = require('escape-string-regexp')
 const express = require("express")
@@ -23,7 +24,7 @@ paperRoutes.post("/new", async (req, res) => {
       Email: req.auth[process.env.SERVICE_SITE]
     })
     console.log(user)
-    console.log(req.body)
+    console.log(req.body.draftID)
     if (req.body.pdf == null) return;
     const paper = new Paper({
       Author: user._id,
@@ -46,6 +47,12 @@ paperRoutes.post("/new", async (req, res) => {
     })
     // Ritrasformiamo in binario prima di salvare perchè base64 occupa 1.33 volte lo spazio 
     paper.Pdf = new Buffer.from(req.body.pdf, "base64")
+
+    // Delete the draft when it becomes a paper
+    Draft.findByIdAndDelete(req.body.draftID).then(() => { console.log("deleted the draft") }).catch((err) => { console.log(err) })
+    // Remove the draft from the user when it becomes a paper
+    Profile.updateOne({ User: user._id }, { $pull: { Drafts: req.body.draftID } }).then(() => { console.log("removed the draft from the profile") }).catch((err) => { console.log(err) })
+
     await Profile.updateOne({ User: user._id }, { $push: { Papers: paper._id } })
     await paper.save()
     console.log("Ok")
