@@ -1,4 +1,4 @@
-require("dotenv").config();
+// require("dotenv").config();
 const express = require("express")
 const app = express()
 const mongoose = require("mongoose")
@@ -16,7 +16,6 @@ const draftRoutes = require("./routes/draft")
 const errController = (err, req, res, next) => {
   const error = { ...err }
   error.message = err.message
-  console.log(error)
   if (error.code === '11000') {
     return res.status(400).json({ error: error.message })
   }

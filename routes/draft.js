@@ -11,9 +11,6 @@ draftRoutes.post("/new", async (req, res) => {
       Email: req.auth[process.env.SERVICE_SITE]
     })
     let draft
-    console.log(req.body)
-    // console.log("BOOL: ", Boolean(req.body.draftId))
-    console.log(req.body)
     if (!Boolean(req.body.draftId)) {
       draft = new Draft({
         Author: user._id,
@@ -48,10 +45,8 @@ draftRoutes.post("/new", async (req, res) => {
       })
       await draft.save()
       await Profile.updateOne({ User: user._id }, { $push: { Drafts: draft._id } })
-      console.log("Ok new draft")
     } else {
       draft = await Draft.findById(req.body.draftId)
-      console.log("SERVER: ", draft)
       draft.Title = req.body.title
       draft.Description = req.body.description
       draft.Behavior = req.body.behavior
@@ -73,11 +68,9 @@ draftRoutes.post("/new", async (req, res) => {
       draft.Rules = req.body.rules
       draft.Aesthetics = req.body.aesthetics
       await draft.save()
-      console.log("Ok already created draft used a new ")
     }
     return res.status(200).json({ draft: draft })
   } catch (err) {
-    console.log("draft" + err)
     return res.status(500).json({ error: err })
   }
 })
@@ -90,16 +83,13 @@ draftRoutes.get("/me", async (req, res) => {
     const profile = await Profile.findOne({ User: user._id })
     await profile.populate("Drafts")
     const drafts = profile.Drafts
-    console.log(drafts)
     let resDrafts = []
     if (drafts)
       drafts.forEach(element => {
         resDrafts.push(element.restricted)
       })
-    console.log("Raggiunto")
     return res.status(200).json({ msg: "your Drafts", Drafts: resDrafts })
   } catch (err) {
-    console.log(err)
     return res.status(500).json({ error: err })
   }
 })
@@ -118,7 +108,6 @@ draftRoutes.get("/user/:id", async (req, res) => {
     })
     return res.code(200)
   } catch (err) {
-    console.log(err)
     return res.status(500).json({ error: err })
   }
 })
@@ -128,10 +117,8 @@ draftRoutes.get("/:id", async (req, res) => {
   try {
     const id = req.params.id
     const draft = await Draft.findOne({ _id: id })
-    console.log("Ok")
     return res.status(200).json({ draft: draft })
   } catch (err) {
-    console.log(err)
     return res.status(500).json({ err: err })
   }
 })
@@ -139,10 +126,7 @@ draftRoutes.get("/:id", async (req, res) => {
 // patch a draft based on its id  
 draftRoutes.patch("/:id", async (req, res) => {
   try {
-    console.log("Id:", req.params.id)
-    console.log("Request: ", req.body)
     let draft = await Draft.findById(req.params.id)
-    console.log("SERVER: ", draft)
     draft.Title = req.body.title
     draft.Description = req.body.description
     draft.Behavior = req.body.behavior
@@ -164,12 +148,9 @@ draftRoutes.patch("/:id", async (req, res) => {
     draft.Rules = req.body.rules
     draft.Aesthetics = req.body.aesthetics
     await draft.save()
-    console.log("Ok")
-
     return res.status(200).json({ data: "PATCH call:", draft: draft })
 
   } catch (err) {
-    console.log("draft" + err)
     return res.status(500).json({ error: err })
   }
 })

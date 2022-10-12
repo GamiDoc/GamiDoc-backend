@@ -23,8 +23,6 @@ paperRoutes.post("/new", async (req, res) => {
     const user = await User.findOne({
       Email: req.auth[process.env.SERVICE_SITE]
     })
-    console.log(user)
-    console.log(req.body.draftID)
     if (req.body.pdf == null) return;
     const paper = new Paper({
       Author: user._id,
@@ -55,10 +53,8 @@ paperRoutes.post("/new", async (req, res) => {
 
     await Profile.updateOne({ User: user._id }, { $push: { Papers: paper._id } })
     await paper.save()
-    console.log("Ok")
     return res.status(201).json(paper);
   } catch (err) {
-    console.log({ Error: err })
     return res.status(400).json({ message: err.message })
   }
 })
@@ -80,7 +76,6 @@ paperRoutes.get('/all/me', async (req, res) => {
     return res.status(200).json({ data: resInfo })
 
   } catch (err) {
-    console.log(err)
     return res.status(500).json({ message: err.message })
   }
 })
@@ -111,10 +106,8 @@ paperRoutes.get("/feed", async (req, res) => {
       if (alreadyReviewed == false && element.Author.toString() != user._id.toString()) resReview.push(element.restricted)
       // resReview = [...resReview, element.restricted]
     }))
-    console.log("got it", resReview)
     return res.status(200).json({ data: resReview })
   } catch (err) {
-    console.log(err)
     return res.status(400).json({ message: err.message })
   }
 })
@@ -132,7 +125,6 @@ paperRoutes.get('/search/:keyword/:pageN ', async (req, res) => {
       .limit(n)
       .toArray((err, data) => {
         if (err != null) {
-          console.log(err)
           return
         }
         papers = data
@@ -166,9 +158,6 @@ paperRoutes.post('/reviews/new', async (req, res) => {
     if (paper.Approved == true) return res.status(401).json({ message: "The paper has already been approved " })
     if (paper.Author == user._id) return res.status(401).json({ message: " Cant leave a review to your own paper" })
 
-    console.log("PaperID from request:\n", req.body.paperID)
-    console.log("Paper:\n", paper)
-    console.log("Approved:\n", req.body.approved)
 
     // Per i paper create prima di aggiungere nickname 
     let nickname
@@ -183,7 +172,6 @@ paperRoutes.post('/reviews/new', async (req, res) => {
       Approved: req.body.approved,
       Comment: req.body.comment,
     })
-    console.log(review)
     await review.save()
 
     // inserisci la review dentro lo schema del profilo che l'ha inviata 
@@ -193,7 +181,6 @@ paperRoutes.post('/reviews/new', async (req, res) => {
 
     // Controlla se paper è da approvare 
     let plenght = paper.Reviews.lenght + 1// non so se legale, da provare ps: non è legale 
-    console.log("plenght: " + plenght)
     if (plenght >= 3) {
       await paper.populate("Reviews")
       let vote;
@@ -205,7 +192,6 @@ paperRoutes.post('/reviews/new', async (req, res) => {
     await paper.save()
     return res.status(200).json({ output: "Review salvata correttamente", review: review })
   } catch (err) {
-    console.log(err)
     res.status(500).json({ message: err.message })
   }
 })
@@ -220,9 +206,6 @@ paperRoutes.get('/reviews/user', async (req, res) => {
       .populate("PaperReviews")
     let reviews = profile.PaperReviews
 
-    // console.log(profile)
-    // console.log(reviews)
-    // console.log(profile.PaperReviews)
 
     await Promise.all(reviews.map(async (review) => {
       await review.populate("Paper")
@@ -230,7 +213,6 @@ paperRoutes.get('/reviews/user', async (req, res) => {
     }))
     return res.status(200).json({ reviews: reviews })
   } catch (err) {
-    console.log(err)
     return res.status(500).json({ err: err })
   }
 })
@@ -269,8 +251,6 @@ paperRoutes.get("/:_id", getPaper, async (req, res) => {
   const pdf = res.paper.pdfInfo
   const info = res.paper.restricted
   delete res.paper
-  console.log("resPdf\n " + res.pdf)
-  console.log("resInfo\n " + res.info)
   return res.status(200).json({ pdf: pdf, info: info })
 })
 

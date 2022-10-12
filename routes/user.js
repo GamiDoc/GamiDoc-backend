@@ -55,10 +55,8 @@ userRoutes.post('/firstConfig', async (req, res, next) => {
     }
     management.updateUserMetadata({ id: req.auth.sub }, { first_config: true }, (err, user) => {
       if (err) {
-        console.log(err)
         return res.status(500).json({ error: "auth0 connection failed!" })
       }
-      console.log(user)
       return res.status(200).json({ status: 'ok' })
     })
   } catch (err) {
@@ -70,11 +68,9 @@ userRoutes.post('/firstConfig', async (req, res, next) => {
 userRoutes.get('/removeFirstConfig', async (req, res) => {
   management.updateUserMetadata({ id: req.auth.sub }, { first_config: null }, (err, user) => {
     if (err) {
-      console.log(err)
       return res.status(500).json({ error: "auth0 connection failed!" })
     }
-    console.log(user)
-    return res.status(200).json({ status: 'ok' })
+    // return res.status(200).json({ status: 'ok' })
   })
 })
 
