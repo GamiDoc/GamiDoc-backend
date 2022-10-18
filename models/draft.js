@@ -19,10 +19,19 @@ const draftSchema = new Schema({
   Behavior: {
     type: String,
   },
+  DiscBehavior: {
+    type: String,
+  },
   Domain: {
     type: String,
   },
+  DomainDescription: {
+    type: String,
+  },
   Aim: {
+    type: String,
+  },
+  AimDescription: {
     type: String,
   },
   TargetAge: [{
@@ -31,14 +40,23 @@ const draftSchema = new Schema({
   TargetUser: {
     type: String,
   },
+  TargetCategory: {
+    type: String,
+  },
 
   // DEVICE 
   Device: {
     type: String,
   },
+  DeviceDescription: {
+    type: String,
+  },
 
   // MODALITY 
   Modality: {
+    type: String,
+  },
+  ModalityDescription: {
     type: String,
   },
 
@@ -53,29 +71,24 @@ const draftSchema = new Schema({
   },
 
   // FEEDBACK
+  Timing: {
+    type: String,
+  },
   Context: {
     type: String,
   },
   ContextDescription: {
     type: String,
   },
-  Timing: {
-    type: String,
-  },
-  TimingDescription: {
-    type: String,
-  },
+  // TimingDescription: {
+  //   type: String,
+  // },
 
   // AFFORDANCES
-  GameAction: {
-    type: String,
-  },
-  Condition: {
-    type: String,
-  },
-  Affordances: {
-    type: String,
-  },
+  Affordances: [{
+    Type: String,
+    Text: String,
+  }],
 
   // RULES 
   Rules: {

@@ -45,6 +45,11 @@ const paperSchema = new Schema({
   Personalization: {
     type: String,
   },
+  Targets: [
+    { Age: String },
+    { User: String },
+    { Category: String },
+  ],
   Timing: {
     type: String,
   },

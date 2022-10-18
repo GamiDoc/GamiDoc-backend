@@ -18,12 +18,17 @@ draftRoutes.post("/new", async (req, res) => {
         Description: req.body.description,
 
         Behavior: req.body.behavior,
+        DiscBehavior: req.body.discBehavior,
         Domain: req.body.domain,
+        DomainDescription: req.body.domainDescription,
         Aim: req.body.aim,
+        AimDescription: req.body.aimDescription,
         TargetAge: req.body.targetAge,
         TargetUser: req.body.targetUser,
+        TargetCategory: req.body.targetCategory,
 
         Device: req.body.device,
+        DeviceDescription: req.body.deviceDescription,
 
         Modality: req.body.modality,
 
@@ -34,15 +39,15 @@ draftRoutes.post("/new", async (req, res) => {
         Context: req.body.context,
         ContextDescription: req.body.contextDescription,
         Timing: req.body.timing,
-        TimingDescription: req.body.timingDescription,
+        // TimingDescription: req.body.timingDescription,
 
-        GameAction: req.body.gameAction,
-        Condition: req.body.condition,
-        Affordances: req.body.affordances,
+        // GameAction: req.body.gameAction,
+        // Condition: req.body.condition,
 
         Rules: req.body.rules,
         Aesthetics: req.body.aesthetics,
       })
+      draft.Affordances = [...req.body.affordances] // prova 
       await draft.save()
       await Profile.updateOne({ User: user._id }, { $push: { Drafts: draft._id } })
     } else {
@@ -50,21 +55,26 @@ draftRoutes.post("/new", async (req, res) => {
       draft.Title = req.body.title
       draft.Description = req.body.description
       draft.Behavior = req.body.behavior
+      draft.DiscBehavior = req.body.discBehavior
       draft.Domain = req.body.domain
+      draft.DomainDescription = req.body.domainDescription
       draft.Aim = req.body.aim
+      draft.AimDescription = req.body.aimDescription
       draft.TargetAge = req.body.targetAge
       draft.TargetUser = req.body.targetUser
+      draft.TargetCategory = req.body.targetCategory
       draft.Device = req.body.device
+      draft.DeviceDescription = req.body.deviceDescription
       draft.Modality = req.body.modality
       draft.Dynamics = req.body.dynamics
       draft.Personalization = req.body.personalization
       draft.Context = req.body.context
       draft.ContextDescription = req.body.contextDescription
       draft.Timing = req.body.timing
-      draft.TimingDescription = req.body.timingDescription
-      draft.GameAction = req.body.gameAction
-      draft.Condition = req.body.condition
-      draft.Affordances = req.body.affordances
+      // draft.TimingDescription = req.body.timingDescription
+      // draft.GameAction = req.body.gameAction
+      // draft.Condition = req.body.condition
+      draft.Affordances = [...req.body.affordances]
       draft.Rules = req.body.rules
       draft.Aesthetics = req.body.aesthetics
       await draft.save()
@@ -130,21 +140,26 @@ draftRoutes.patch("/:id", async (req, res) => {
     draft.Title = req.body.title
     draft.Description = req.body.description
     draft.Behavior = req.body.behavior
+    draft.DiscBehavior = req.body.discBehavior
     draft.Domain = req.body.domain
+    draft.DomainDescription = req.body.domainDescription
     draft.Aim = req.body.aim
+    draft.AimDescription = req.body.aimDescription
     draft.TargetAge = req.body.targetAge
     draft.TargetUser = req.body.targetUser
+    draft.TargetCategory = req.body.targetCategory
     draft.Device = req.body.device
+    draft.DeviceDescription = req.body.deviceDescription
     draft.Modality = req.body.modality
     draft.Dynamics = req.body.dynamics
     draft.Personalization = req.body.personalization
     draft.Context = req.body.context
     draft.ContextDescription = req.body.contextDescription
     draft.Timing = req.body.timing
-    draft.TimingDescription = req.body.timingDescription
-    draft.GameAction = req.body.gameAction
-    draft.Condition = req.body.condition
-    draft.Affordances = req.body.affordances
+    // draft.TimingDescription = req.body.timingDescription
+    // draft.GameAction = req.body.gameAction
+    // draft.Condition = req.body.condition
+    draft.Affordances = [...req.body.affordances]
     draft.Rules = req.body.rules
     draft.Aesthetics = req.body.aesthetics
     await draft.save()
