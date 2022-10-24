@@ -1,7 +1,5 @@
 const mongoose = require("mongoose")
-var Schema = mongoose.Schema
-
-const draftSchema = new Schema({
+var Schema = mongoose.Schema const draftSchema = new Schema({
   Author: {
     type: Schema.Types.ObjectId,
     required: true,
@@ -80,15 +78,21 @@ const draftSchema = new Schema({
   ContextDescription: {
     type: String,
   },
+
   // TimingDescription: {
   //   type: String,
   // },
 
   // AFFORDANCES
-  Affordances: [{
-    Type: String,
-    Text: String,
-  }],
+  // Affordances: [{
+  //   Type: { type: String },
+  //   Text: { type: String },
+  // }],
+
+  Affordances: {
+    type: Map,
+    of: String
+  },
 
   // RULES 
   Rules: {
@@ -112,6 +116,7 @@ draftSchema.virtual("restricted").get(
     }
   }
 )
+
 
 const draft = mongoose.model("Draft", draftSchema)
 module.exports = {

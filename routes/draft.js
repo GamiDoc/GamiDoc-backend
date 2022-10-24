@@ -7,6 +7,7 @@ const draftRoutes = express.Router()
 // post or update draft 
 draftRoutes.post("/new", async (req, res) => {
   try {
+    console.log("Im in")
     const user = await User.findOne({
       Email: req.auth[process.env.SERVICE_SITE]
     })
@@ -35,7 +36,7 @@ draftRoutes.post("/new", async (req, res) => {
         Dynamics: req.body.dynamics,
 
         Personalization: req.body.personalization,
-
+        Affordances: {},
         Context: req.body.context,
         ContextDescription: req.body.contextDescription,
         Timing: req.body.timing,
@@ -47,7 +48,11 @@ draftRoutes.post("/new", async (req, res) => {
         Rules: req.body.rules,
         Aesthetics: req.body.aesthetics,
       })
-      draft.Affordances = [...req.body.affordances] // prova 
+      console.log("Created")
+      req.body.affordances.forEach((element) => {
+        draft.Affordances.set(element.type, element.text)
+      })
+      console.log("Affordances: ", draft.Affordances)
       await draft.save()
       await Profile.updateOne({ User: user._id }, { $push: { Drafts: draft._id } })
     } else {
@@ -71,16 +76,19 @@ draftRoutes.post("/new", async (req, res) => {
       draft.Context = req.body.context
       draft.ContextDescription = req.body.contextDescription
       draft.Timing = req.body.timing
-      // draft.TimingDescription = req.body.timingDescription
-      // draft.GameAction = req.body.gameAction
-      // draft.Condition = req.body.condition
-      draft.Affordances = [...req.body.affordances]
+      // draft.Affordances = [...req.body.affordances]
+      req.body.affordances.forEach((element) => {
+        draft.Affordances.set(element.type, element.text)
+      })
+      console.log(draft.Affordances)
       draft.Rules = req.body.rules
       draft.Aesthetics = req.body.aesthetics
+
       await draft.save()
     }
     return res.status(200).json({ draft: draft })
   } catch (err) {
+    console.log("ERR:", err)
     return res.status(500).json({ error: err })
   }
 })
@@ -156,10 +164,10 @@ draftRoutes.patch("/:id", async (req, res) => {
     draft.Context = req.body.context
     draft.ContextDescription = req.body.contextDescription
     draft.Timing = req.body.timing
-    // draft.TimingDescription = req.body.timingDescription
-    // draft.GameAction = req.body.gameAction
-    // draft.Condition = req.body.condition
-    draft.Affordances = [...req.body.affordances]
+    req.body.affordances.forEach(element => {
+      draft.Affordances.set(element.type, element.text)
+    })
+    console.log(draft.Affordances)
     draft.Rules = req.body.rules
     draft.Aesthetics = req.body.aesthetics
     await draft.save()

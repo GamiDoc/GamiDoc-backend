@@ -36,6 +36,7 @@ paperRoutes.post("/new", async (req, res) => {
       Device: req.body.device,
       Modality: req.body.modality,
       Dynamics: req.body.dynamics,
+
       Personalization: req.body.personalization,
       Timing: req.body.timing,
       Context: req.body.context,
@@ -43,6 +44,9 @@ paperRoutes.post("/new", async (req, res) => {
       Rules: req.body.rules,
       Aestheics: req.body.aesthetics,
     })
+    paper.Targets.Age = req.body.targetAge
+    paper.Targets.User = req.body.targetUser
+    paper.Targets.Category = req.body.targetCategory
     // Ritrasformiamo in binario prima di salvare perchè base64 occupa 1.33 volte lo spazio 
     paper.Pdf = new Buffer.from(req.body.pdf, "base64")
 
