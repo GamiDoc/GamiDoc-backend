@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-var Schema = mongoose.Schema const draftSchema = new Schema({
+const draftSchema = new Schema({
   Author: {
     type: Schema.Types.ObjectId,
     required: true,
