@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+var Schema = mongoose.Schema
 const draftSchema = new Schema({
   Author: {
     type: Schema.Types.ObjectId,
@@ -116,7 +117,6 @@ draftSchema.virtual("restricted").get(
     }
   }
 )
-
 
 const draft = mongoose.model("Draft", draftSchema)
 module.exports = {

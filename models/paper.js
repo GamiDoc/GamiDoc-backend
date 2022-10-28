@@ -56,9 +56,9 @@ const paperSchema = new Schema({
   Context: {
     type: String,
   },
-  Affordances: {
-    type: String,
-  },
+  // Affordances: {
+  //   type: String,
+  // },
   Rules: {
     type: String,
   },

@@ -40,7 +40,7 @@ paperRoutes.post("/new", async (req, res) => {
       Personalization: req.body.personalization,
       Timing: req.body.timing,
       Context: req.body.context,
-      Affordances: req.body.affordances,
+      // Affordances: req.body.affordances,
       Rules: req.body.rules,
       Aestheics: req.body.aesthetics,
     })
